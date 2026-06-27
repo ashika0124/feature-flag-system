@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Feature Flag System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #28a745;
+      padding-bottom: 10px;
+    }
+
+    h2 {
+      color: #555;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #28a745;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    button.logout {
+      background-color: #dc3545;
+    }
+
+    button.logout:hover {
+      background-color: #c82333;
+    }
+
+    button.delete {
+      background-color: #dc3545;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    button.delete:hover {
+      background-color: #c82333;
+    }
+
+    button.toggle {
+      background-color: #ffc107;
+      color: #333;
+    }
+
+    button.toggle:hover {
+      background-color: #e0a800;
+    }
+
+    .alert {
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .alert.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .alert.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .flag-list {
+      margin-top: 20px;
+    }
+
+    .flag-item {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .flag-info {
+      flex: 1;
+    }
+
+    .flag-info h3 {
+      color: #333;
+      margin-bottom: 5px;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .flag-info p {
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .flag-status {
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .flag-status.enabled {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .flag-status.disabled {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .flag-actions {
+      display: flex;
+      gap: 10px;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .nav-tab {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      color: #666;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav-tab.active {
+      color: #28a745;
+      border-bottom-color: #28a745;
+    }
+
+    .nav-tab:hover {
+      color: #218838;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Admin Dashboard</h1>
+
+    <div class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-section="login">Login / Signup</button>
+      <button class="nav-tab" data-section="dashboard" style="display: none;">Dashboard</button>
+    </div>
+
+    <!-- Auth Section -->
+    <div class="section active" id="login">
+      <div class="form-row">
+        <div>
+          <h2>Login</h2>
+          <div id="loginAlert"></div>
+          <div class="form-group">
+            <label for="loginEmail">Email:</label>
+            <input type="email" id="loginEmail" placeholder="admin@example.com">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" placeholder="Password">
+          </div>
+          <button onclick="handleLogin()">Login</button>
+        </div>
+
+        <div>
+          <h2>Signup</h2>
+          <div id="signupAlert"></div>
+          <div class="form-group">
+            <label for="signupEmail">Email:</label>
+            <input type="email" id="signupEmail" placeholder="admin@example.com">
+          </div>
+          <div class="form-group">
+            <label for="signupPassword">Password:</label>
+            <input type="password" id="signupPassword" placeholder="Password">
+          </div>
+          <div class="form-group">
+            <label for="organizationId">Organization ID:</label>
+            <input type="text" id="organizationId" placeholder="Paste org ID from Super Admin">
+          </div>
+          <button onclick="handleSignup()">Signup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div class="section" id="dashboard">
+      <h2>Create New Feature Flag</h2>
+      <div id="dashboardAlert"></div>
+      <div class="form-group">
+        <label for="flagKey">Feature Key:</label>
+        <input type="text" id="flagKey" placeholder="e.g., new_dashboard, beta_feature">
+      </div>
+      <div class="form-group">
+        <label for="flagDescription">Description:</label>
+        <textarea id="flagDescription" placeholder="Describe this feature..."></textarea>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="flagEnabled">
+        <label for="flagEnabled" style="margin: 0;">Enable by default</label>
+      </div>
+      <button onclick="createFlag()" style="margin-top: 15px;">Create Flag</button>
+
+      <h2>Feature Flags</h2>
+      <div class="flag-list" id="flagList"></div>
+
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api/org-admin';
+    let authToken = localStorage.getItem('adminToken');
+    let organizationId = localStorage.getItem('orgId');
+
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const section = e.target.dataset.section;
+        showSection(section);
+      });
+    });
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (!email || !password) {
+        showAlert('loginAlert', 'Email and password required', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showAlert('loginAlert', data.error, 'error');
+          return;
+        }
+
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('orgId', data.organizationId);
+        authToken = data.token;
+        organizationId = data.organizationId;
+
+        showAlert('loginAlert', 'Login successful!', 'success');
+        
+        setTimeout(() => {
+          showSection('dashboard');
+          document.querySelector('[data-section="dashboard"]').style.display = 'block';
+          fetchFlags();
+        }, 500);
+      } catch (error) {
+        showAlert('loginAlert', 'Login failed: ' + error.message, 'error');
+      }
+    }
+
+    async function handleSignup() {
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const orgId = document.getElementById('organizationId').value;
+
+      if (!email || !password || !orgId) {
+        showAlert('signupAlert', 'All fields required', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, organizationId: orgId })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showAlert('signupAlert', data.error, 'error');
+          return;
+        }
+
+        showAlert('signupAlert', 'Signup successful! Please login.', 'success');
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupPassword').value = '';
+        document.getElementById('organizationId').value = '';
+      } catch (error) {
+        showAlert('signupAlert', 'Signup failed: ' + error.message, 'error');
+      }
+    }
+
+    async function createFlag() {
+      const key = document.getElementById('flagKey').value;
+      const description = document.getElementById('flagDescription').value;
+      const enabled = document.getElementById('flagEnabled').checked;
+
+      if (!key) {
+        showAlert('dashboardAlert', 'Feature key required', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/flags`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ key, description, enabled })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showAlert('dashboardAlert', data.error, 'error');
+          return;
+        }
+
+        showAlert('dashboardAlert', 'Flag created successfully!', 'success');
+        document.getElementById('flagKey').value = '';
+        document.getElementById('flagDescription').value = '';
+        document.getElementById('flagEnabled').checked = false;
+        fetchFlags();
+      } catch (error) {
+        showAlert('dashboardAlert', 'Failed to create flag: ' + error.message, 'error');
+      }
+    }
+
+    async function fetchFlags() {
+      try {
+        const response = await fetch(`${API_URL}/flags`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        const flags = await response.json();
+        const flagList = document.getElementById('flagList');
+        flagList.innerHTML = '';
+
+        if (flags.length === 0) {
+          flagList.innerHTML = '<p style="color: #999; text-align: center;">No feature flags created yet.</p>';
+          return;
+        }
+
+        flags.forEach(flag => {
+          const div = document.createElement('div');
+          div.className = 'flag-item';
+          div.innerHTML = `
+            <div class="flag-info">
+              <h3>${flag.key}</h3>
+              <p>${flag.description || 'No description'}</p>
+              <p style="font-size: 11px; color: #999;">ID: ${flag.id}</p>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <span class="flag-status ${flag.enabled ? 'enabled' : 'disabled'}">
+                ${flag.enabled ? '✓ Enabled' : '✗ Disabled'}
+              </span>
+              <div class="flag-actions">
+                <button class="toggle" onclick="toggleFlag('${flag.id}', ${flag.enabled})">
+                  ${flag.enabled ? 'Disable' : 'Enable'}
+                </button>
+                <button class="delete" onclick="deleteFlag('${flag.id}')">Delete</button>
+              </div>
+            </div>
+          `;
+          flagList.appendChild(div);
+        });
+      } catch (error) {
+        showAlert('dashboardAlert', 'Failed to fetch flags: ' + error.message, 'error');
+      }
+    }
+
+    async function toggleFlag(flagId, currentStatus) {
+      try {
+        const response = await fetch(`${API_URL}/flags/${flagId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ enabled: !currentStatus })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          showAlert('dashboardAlert', data.error, 'error');
+          return;
+        }
+
+        fetchFlags();
+      } catch (error) {
+        showAlert('dashboardAlert', 'Failed to update flag: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteFlag(flagId) {
+      if (!confirm('Are you sure you want to delete this flag?')) return;
+
+      try {
+        const response = await fetch(`${API_URL}/flags/${flagId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          showAlert('dashboardAlert', data.error, 'error');
+          return;
+        }
+
+        showAlert('dashboardAlert', 'Flag deleted successfully!', 'success');
+        fetchFlags();
+      } catch (error) {
+        showAlert('dashboardAlert', 'Failed to delete flag: ' + error.message, 'error');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('orgId');
+      authToken = null;
+      organizationId = null;
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+      showSection('login');
+      document.querySelector('[data-section="dashboard"]').style.display = 'none';
+    }
+
+    function showAlert(elementId, message, type) {
+      const alert = document.getElementById(elementId);
+      alert.textContent = message;
+      alert.className = `alert ${type}`;
+      setTimeout(() => {
+        alert.className = 'alert';
+      }, 5000);
+    }
+
+    // Check if already logged in
+    if (authToken && organizationId) {
+      showSection('dashboard');
+      document.querySelector('[data-section="dashboard"]').style.display = 'block';
+      fetchFlags();
+    }
+  </script>
+</body>
+</html>

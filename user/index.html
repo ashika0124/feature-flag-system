@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Features - Feature Flag System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 15px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      background-color: #667eea;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5568d3;
+    }
+
+    button.logout {
+      background-color: #dc3545;
+      margin-top: 20px;
+      width: auto;
+      padding: 8px 16px;
+      display: block;
+      margin-left: auto;
+    }
+
+    button.logout:hover {
+      background-color: #c82333;
+    }
+
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .alert.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 6px;
+      text-align: center;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .result-box.enabled {
+      background-color: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+      display: block;
+    }
+
+    .result-box.disabled {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+      display: block;
+    }
+
+    .result-box h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .result-box p {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      background-color: #f0f0f0;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-btn.active {
+      background-color: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .nav-btn:hover {
+      border-color: #667eea;
+    }
+
+    h2 {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Feature Check</h1>
+
+    <div class="nav-buttons" id="navButtons">
+      <button class="nav-btn active" data-section="login">Login</button>
+      <button class="nav-btn" data-section="dashboard" style="display: none;">Check Feature</button>
+    </div>
+
+    <!-- Login Section -->
+    <div class="section active" id="login">
+      <h2>Login to your organization</h2>
+      <div id="loginAlert"></div>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="user@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Your password">
+      </div>
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div class="section" id="dashboard">
+      <h2>Check if a feature is enabled</h2>
+      <div id="dashboardAlert"></div>
+      <div class="form-group">
+        <label for="featureKey">Feature Key:</label>
+        <input type="text" id="featureKey" placeholder="e.g., new_dashboard">
+      </div>
+      <button onclick="checkFeature()">Check Feature</button>
+
+      <div id="resultBox" class="result-box">
+        <h3 id="resultTitle"></h3>
+        <p id="resultMessage"></p>
+      </div>
+
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api/end-user';
+    let authToken = localStorage.getItem('userToken');
+
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const section = e.target.dataset.section;
+        if (section) showSection(section);
+      });
+    });
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showAlert('loginAlert', 'Email and password required', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showAlert('loginAlert', data.error, 'error');
+          return;
+        }
+
+        localStorage.setItem('userToken', data.token);
+        authToken = data.token;
+        showAlert('loginAlert', 'Login successful!', 'success');
+        
+        setTimeout(() => {
+          showSection('dashboard');
+          document.querySelector('[data-section="dashboard"]').style.display = 'block';
+        }, 500);
+      } catch (error) {
+        showAlert('loginAlert', 'Login failed: ' + error.message, 'error');
+      }
+    }
+
+    async function checkFeature() {
+      const key = document.getElementById('featureKey').value;
+
+      if (!key) {
+        showAlert('dashboardAlert', 'Feature key required', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/check-flag`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ key })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          document.getElementById('resultBox').className = 'result-box disabled';
+          document.getElementById('resultTitle').textContent = 'Feature Not Found';
+          document.getElementById('resultMessage').textContent = data.error;
+          document.getElementById('resultBox').style.display = 'block';
+          return;
+        }
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.className = `result-box ${data.enabled ? 'enabled' : 'disabled'}`;
+        document.getElementById('resultTitle').textContent = 
+          data.enabled ? '✓ Feature Enabled' : '✗ Feature Disabled';
+        document.getElementById('resultMessage').textContent = 
+          data.enabled ? 'This feature is available for your organization.' : 'This feature is not available yet.';
+        resultBox.style.display = 'block';
+      } catch (error) {
+        showAlert('dashboardAlert', 'Failed to check feature: ' + error.message, 'error');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('userToken');
+      authToken = null;
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('featureKey').value = '';
+      document.getElementById('resultBox').style.display = 'none';
+      showSection('login');
+      document.querySelector('[data-section="dashboard"]').style.display = 'none';
+    }
+
+    function showAlert(elementId, message, type) {
+      const alert = document.getElementById(elementId);
+      alert.textContent = message;
+      alert.className = `alert ${type}`;
+      setTimeout(() => {
+        alert.className = 'alert';
+      }, 5000);
+    }
+
+    // Check if already logged in
+    if (authToken) {
+      showSection('dashboard');
+      document.querySelector('[data-section="dashboard"]').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
